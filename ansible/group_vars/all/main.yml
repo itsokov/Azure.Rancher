@@ -1,0 +1,15 @@
+### Docker Install Section
+
+docker_edition: 'ce'
+docker_compose_version: "1.25.0"
+docker_users: [rancheradmin]
+
+#Helm chart version
+helm_rancher_version: v2.5.7
+
+### Kubectl Settings
+kubectl_binary_version: v1.20.1
+kubectl_binary_download_url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_binary_version }}/bin/linux/amd64/kubectl"
+
+# defaults file for rke
+rke_ver: v1.2.7

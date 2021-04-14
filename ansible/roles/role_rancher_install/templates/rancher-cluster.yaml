@@ -1,0 +1,18 @@
+cluster_name: rancher-cluster
+ignore_docker_version: true
+ssh_key_path: /root/.ssh/id_rsa
+# system_images:
+#     kubernetes: rancher/hyperkube:v1.18.14-rancher1
+nodes:
+  - address: "{{ rancher1IP }}"
+    hostname_override: rancher-master1
+    user: rancheradmin
+    role: [controlplane,etcd,worker]
+  - address: "{{ rancher2IP }}"
+    hostname_override: rancher-master2
+    user: rancheradmin
+    role: [controlplane,etcd,worker]
+  - address: "{{ rancher3IP }}"
+    hostname_override: rancher-master3
+    user: rancheradmin
+    role: [controlplane,etcd,worker]

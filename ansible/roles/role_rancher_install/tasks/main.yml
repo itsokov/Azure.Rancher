@@ -1,0 +1,139 @@
+---
+#tasks file for role_rancher_install
+
+- name: Copy RKE cluster config
+  template:
+    src: rancher-cluster.yaml
+    dest: /root/rancher-cluster.yaml
+
+- name: Copy private key
+  copy:
+    src: ~/.ssh/id_rsa
+    dest: /root/.ssh/id_rsa
+
+- name: disable FW
+  systemd:
+    name: ufw 
+    state: stopped
+    enabled: no
+
+- name: Download kubectl binary
+  get_url:
+    url: "{{ kubectl_binary_download_url }}"
+    dest: "/usr/bin"
+    mode: 0777
+  changed_when: false
+
+
+- name: install helm
+  shell: |
+      curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+      warn=false
+  environment:
+       HELM_INSTALL_DIR: "/usr/bin"
+
+
+- name: run RKE up
+  command: rke up --config /root/rancher-cluster.yaml
+  register: rke_up_result
+  changed_when: false
+  #workaround
+  failed_when: false
+
+
+# we run RKE up 2 and 3 to fix a bug in the ingress controler https://github.com/rancher/rke/issues/342
+- name: run RKE up2
+  command: rke up --config /root/rancher-cluster.yaml
+  changed_when: false
+  #workaround
+  failed_when: false
+
+- name: run RKE up3
+  command: rke up --config /root/rancher-cluster.yaml
+  changed_when: false
+  #workaround
+  failed_when: false
+
+- name: "rke up Result"
+  debug:
+    msg: "{{ rke_up_result.stdout }}"
+  when: rke_up_result is not skipped
+
+- name: Creates .kube directory
+  file:
+    path: ~/.kube
+    state: directory
+
+- name: copy kube credentials
+  copy:
+    src: /root/kube_config_rancher-cluster.yaml
+    dest: ~/.kube/config
+    remote_src: yes
+
+- name: install pip
+  apt: 
+    name: python-pip
+    state: present
+
+- name: Install PyYAML python package
+  pip:
+    name: PyYAML==5.4.1
+
+- name: Install openshift python package 
+  pip:
+    name: openshift==0.11.0
+  
+
+
+#todo fixate the helm version
+- name: Add helm repo
+  community.kubernetes.helm_repository:
+    name: rancher-stable 
+    repo_url: "https://releases.rancher.com/server-charts/stable"
+
+- name: Create a k8s namespace
+  community.kubernetes.k8s:
+    name: cattle-system
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create cert_public_key file
+  copy:
+    content: "{{ cert_public_key }}"
+    dest: "/root/tls.crt"
+
+- name: Create cert_private_key file
+  copy:
+    content: "{{ cert_private_key }}"
+    dest: "/root/tls.key"
+
+- name: Create ca_cert_pem file
+  copy:
+    content: "{{ ca_cert_pem }}"
+    dest: "/root/cacerts.pem"
+
+#todo use k8s ansible module
+- name: Create a k8s tls secret
+  command: kubectl -n cattle-system create secret tls tls-rancher-ingress --cert=/root/tls.crt --key=/root/tls.key
+
+#todo use k8s ansible module
+- name: Create a k8s tls ca
+  command: kubectl -n cattle-system create secret generic tls-ca --from-file=cacerts.pem=/root/cacerts.pem
+
+
+- name: Install Rancher Helm chart
+  community.kubernetes.helm:
+      name: rancher 
+      chart_ref: rancher-stable/rancher
+      chart_version: "{{ helm_rancher_version }}"
+      release_namespace: cattle-system
+      update_repo_cache: yes
+      values:
+        hostname: "{{ hostname }}"
+        ingress:
+          tls:
+            source: "secret"
+        privateCA: true
+        replicas: 1
+
