@@ -1,0 +1,40 @@
+---
+# defaults file for role_vault_install
+
+### Consul Package variables
+consul_version: "1.8.7"
+consul_architecture: "{{ consul_architecture_map[ansible_architecture] }}"
+consul_os: "{{ ansible_system | lower }}"
+consul_pkg: "consul_{{ consul_version }}_{{ consul_os }}_amd64.zip"
+consul_zip_url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version }}_{{ consul_os }}_amd64.zip"
+consul_checksum_file_url: "https://releases.hashicorp.com/consul/{{ consul_version }}/consul_{{ consul_version}}_SHA256SUMS"
+
+# Vault Package variables
+vault_version: "1.5.5"
+vault_architecture: "amd64"
+vault_os: "{{ ansible_system|lower }}"
+vault_pkg: "vault_{{ vault_version }}_{{ vault_os }}_{{ vault_architecture }}.zip"
+vault_shasums: "vault_{{ vault_version }}_SHA256SUMS"
+vault_zip_url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version }}_{{ vault_os }}_{{ vault_architecture }}.zip"
+vault_checksum_file_url: "https://releases.hashicorp.com/vault/{{ vault_version }}/vault_{{ vault_version}}_SHA256SUMS"
+
+
+### Paths
+consul_bin_path: "/usr/local/bin"
+consul_config_path: "/usr/local/etc/consul"
+consul_data_path: "/var/consul/data"
+consul_run_path: "/var/run/consul-server"
+consul_binary: "{{ consul_bin_path }}/consul"
+
+vault_bin_path: /usr/local/bin
+vault_config_path: /etc/vault
+vault_data_path: /var/vault
+vault_home: "/home/{{ vault_user }}"
+vault_run_path: /var/run/vault
+
+
+### System user and group
+consul_user: "consul"
+consul_group: "consul"
+vault_user: "vault"
+vault_group: "vault"

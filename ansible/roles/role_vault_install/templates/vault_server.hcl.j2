@@ -1,0 +1,17 @@
+listener "tcp" {
+  address          = "0.0.0.0:8200"
+  cluster_address  = "{{ bind_addr }}:8201"
+#  tls_cert_file = "/etc/vault/tls.crt"
+#  tls_key_file = "/etc/vault/tls.key"
+tls_disable = true
+}
+
+storage "consul" {
+  address = "127.0.0.1:8500"
+  path    = "vault/"
+}
+
+api_addr = "http://{{ bind_addr }}:8200"
+cluster_addr = "http://{{ bind_addr }}:8201"
+
+ui=true

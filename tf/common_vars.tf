@@ -14,24 +14,24 @@ locals {
   environment = "Dev"
 }
 
-variable "ranchervm" {
+# variable "ranchervm" {
 
-  type    = string
-  default = "ranchervm"
-}
+#   type    = string
+#   default = "ranchervm"
+# }
 
 variable "nw_name" {
   type    = string
   default = "ranchernw"
 }
 
-variable "vm_size" {
-  type    = string
-  default = "Standard_B2ms"
-}
+# variable "vm_size" {
+#   type    = string
+#   default = "Standard_B2ms"
+# }
 
 variable "home_exernal_ip" {
-  type    = string
+  type = string
 
 }
 
@@ -48,7 +48,7 @@ locals {
 
 variable "organization_name" {
   description = "The name of the organization to associate with the certificates (e.g. Acme Co)."
-  default = "Rancher Test"
+  default     = "Rancher Test"
 }
 
 variable "ca_common_name" {
@@ -67,5 +67,5 @@ variable "dns_names" {
 
 variable "validity_period_hours" {
   description = "The number of hours after initial issuing that the certificate will become invalid."
-  default = 1200
+  default     = 1200
 }

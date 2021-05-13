@@ -1,14 +1,11 @@
-
-resource "azurerm_resource_group" "RG" {
-  name     = var.rg_name
-  location = var.location
-  tags     = local.common_tags
+data "azurerm_resource_group" "RG" {
+  name = var.rg_name
 }
 
 resource "azurerm_linux_virtual_machine" "ranchervm0" {
   name                = "${var.ranchervm}0"
-  resource_group_name = azurerm_resource_group.RG.name
-  location            = azurerm_resource_group.RG.location
+  resource_group_name = var.rg_name
+  location            = data.azurerm_resource_group.RG.location
   size                = var.vm_size
   admin_username      = "rancheradmin"
   network_interface_ids = [
@@ -17,7 +14,7 @@ resource "azurerm_linux_virtual_machine" "ranchervm0" {
 
   admin_ssh_key {
     username   = "rancheradmin"
-    public_key = tls_private_key.ssh.public_key_openssh
+    public_key = var.public_key_openssh
   }
 
   os_disk {
@@ -40,12 +37,12 @@ resource "azurerm_linux_virtual_machine" "ranchervm0" {
   provisioner "local-exec" {
     command = <<EOF
 ansible-galaxy install -r ../ansible/requirements.yml --force \
-&& az vm wait -g "${azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm0.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
-&& az vm wait -g "${azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm1.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
-&& az vm wait -g "${azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm2.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
+&& az vm wait -g "${data.azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm0.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
+&& az vm wait -g "${data.azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm1.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
+&& az vm wait -g "${data.azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm2.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
 && sleep 60 \
 && ansible-playbook -i "${self.public_ip_address},"  \
-../ansible/playbook.yaml \
+../ansible/playbook_rancher_master.yaml \
 --extra-vars ' \
 cert_public_key="${module.generate-cert.cert_public_key}" \
 cert_private_key="${module.generate-cert.cert_private_key}" \
@@ -67,36 +64,11 @@ EOF
   ]
 }
 
-resource "tls_private_key" "ssh" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-resource "null_resource" "ssh_keypair" {
-
-
-  provisioner "local-exec" {
-    command = "echo \"${tls_private_key.ssh.private_key_pem}\" > ~/.ssh/id_rsa; chmod 400 ~/.ssh/id_rsa"
-  }
-  provisioner "local-exec" {
-    command = "echo \"${tls_private_key.ssh.public_key_pem}\" > ~/.ssh/id_rsa.pub; chmod 400 ~/.ssh/id_rsa.pub"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "rm ~/.ssh/id_rsa"
-  }
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = "rm ~/.ssh/id_rsa.pub"
-  }
-}
 
 resource "azurerm_linux_virtual_machine" "ranchervm1" {
   name                = "${var.ranchervm}1"
-  resource_group_name = azurerm_resource_group.RG.name
-  location            = azurerm_resource_group.RG.location
+  resource_group_name = data.azurerm_resource_group.RG.name
+  location            = data.azurerm_resource_group.RG.location
   size                = var.vm_size
   admin_username      = "rancheradmin"
   network_interface_ids = [
@@ -105,7 +77,7 @@ resource "azurerm_linux_virtual_machine" "ranchervm1" {
 
   admin_ssh_key {
     username   = "rancheradmin"
-    public_key = tls_private_key.ssh.public_key_openssh
+    public_key = var.public_key_openssh
   }
 
   os_disk {
@@ -128,10 +100,10 @@ resource "azurerm_linux_virtual_machine" "ranchervm1" {
   provisioner "local-exec" {
     command = <<EOF
 ansible-galaxy install -r ../ansible/requirements.yml --force \
-&& az vm wait -g "${azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm1.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
+&& az vm wait -g "${data.azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm1.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
 && sleep 60 \
 && ansible-playbook -i "${self.public_ip_address},"  \
-../ansible/playbook_rancher23.yaml
+../ansible/playbook_rancher_slaves.yaml
 EOF
   }
 
@@ -140,8 +112,8 @@ EOF
 
 resource "azurerm_linux_virtual_machine" "ranchervm2" {
   name                = "${var.ranchervm}2"
-  resource_group_name = azurerm_resource_group.RG.name
-  location            = azurerm_resource_group.RG.location
+  resource_group_name = data.azurerm_resource_group.RG.name
+  location            = data.azurerm_resource_group.RG.location
   size                = var.vm_size
   admin_username      = "rancheradmin"
   network_interface_ids = [
@@ -150,7 +122,7 @@ resource "azurerm_linux_virtual_machine" "ranchervm2" {
 
   admin_ssh_key {
     username   = "rancheradmin"
-    public_key = tls_private_key.ssh.public_key_openssh
+    public_key = var.public_key_openssh
   }
 
   os_disk {
@@ -173,10 +145,10 @@ resource "azurerm_linux_virtual_machine" "ranchervm2" {
   provisioner "local-exec" {
     command = <<EOF
 ansible-galaxy install -r ../ansible/requirements.yml --force \
-&& az vm wait -g "${azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm2.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
+&& az vm wait -g "${data.azurerm_resource_group.RG.name}" -n "${azurerm_linux_virtual_machine.ranchervm2.name}" --custom "instanceView.statuses[?code=='PowerState/running']" \
 && sleep 60 \
 && ansible-playbook -i "${self.public_ip_address},"  \
-../ansible/playbook_rancher23.yaml
+../ansible/playbook_rancher_slaves.yaml
 EOF
   }
   tags = local.common_tags

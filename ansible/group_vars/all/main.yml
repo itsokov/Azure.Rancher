@@ -2,7 +2,7 @@
 
 docker_edition: 'ce'
 docker_compose_version: "1.25.0"
-docker_users: [rancheradmin]
+docker_users: [rancheradmin,kubeadmin]
 
 #Helm chart version
 helm_rancher_version: v2.5.7

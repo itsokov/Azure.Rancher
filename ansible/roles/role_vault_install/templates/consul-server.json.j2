@@ -1,0 +1,16 @@
+{
+  "server": true,
+  "node_name": "{{ node_name }}",
+  "datacenter": "Azure",
+  "data_dir": "{{ consul_data_path }}",
+  "bind_addr": "{{ bind_addr }}",
+  "client_addr": "127.0.0.1",
+  "advertise_addr": "{{ bind_addr }}",
+  "bootstrap_expect": 1,
+  "retry_join": ["{{ bind_addr }}"],
+  "ui": true,
+  "log_level": "DEBUG",
+  "enable_syslog": true,
+  "acl_enforce_version_8": false
+}
+

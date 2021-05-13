@@ -1,17 +1,12 @@
-# Create a virtual network within the resource group
-
-resource "azurerm_virtual_network" "vnet" {
+data "azurerm_virtual_network" "vnet" {
   name                = var.nw_name
-  resource_group_name = azurerm_resource_group.RG.name
-  location            = azurerm_resource_group.RG.location
-  address_space       = ["10.0.0.0/16"]
-  tags                = local.common_tags
+  resource_group_name = data.azurerm_resource_group.RG.name
 }
 
 resource "azurerm_subnet" "subnet1" {
   name                 = "subnet1"
-  resource_group_name  = azurerm_resource_group.RG.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = data.azurerm_resource_group.RG.name
+  virtual_network_name = data.azurerm_virtual_network.vnet.name
   address_prefixes     = ["10.0.1.0/24"]
 
 }
@@ -19,8 +14,8 @@ resource "azurerm_subnet" "subnet1" {
 resource "azurerm_network_interface" "nwinterface" {
   count               = 3
   name                = "ranchervm${count.index}-nic"
-  location            = azurerm_resource_group.RG.location
-  resource_group_name = azurerm_resource_group.RG.name
+  location            = data.azurerm_resource_group.RG.location
+  resource_group_name = data.azurerm_resource_group.RG.name
 
   ip_configuration {
     name                          = "internal"
@@ -34,8 +29,8 @@ resource "azurerm_network_interface" "nwinterface" {
 
 resource "azurerm_network_security_group" "rancherNsg" {
   name                = "rancherNsg"
-  location            = azurerm_resource_group.RG.location
-  resource_group_name = azurerm_resource_group.RG.name
+  location            = data.azurerm_resource_group.RG.location
+  resource_group_name = data.azurerm_resource_group.RG.name
 
   security_rule {
     name                       = "SSH"
@@ -79,8 +74,8 @@ resource "azurerm_network_security_group" "rancherNsg" {
 resource "azurerm_public_ip" "ranchervm" {
   count               = 3
   name                = "ranchervm-${count.index}"
-  resource_group_name = azurerm_resource_group.RG.name
-  location            = azurerm_resource_group.RG.location
+  resource_group_name = data.azurerm_resource_group.RG.name
+  location            = data.azurerm_resource_group.RG.location
   allocation_method   = "Static"
 
   tags = local.common_tags

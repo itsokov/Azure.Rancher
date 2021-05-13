@@ -5,6 +5,7 @@ roles:
 
   - src: https://github.com/andrewrothstein/ansible-rke
     version: v1.0.21
+
 collections:
   - name: community.kubernetes
   - name: community.kubernetes.helm

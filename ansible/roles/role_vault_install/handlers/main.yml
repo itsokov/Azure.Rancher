@@ -1,0 +1,13 @@
+---
+# handlers file for role_vault_install
+- name: restart consul on Linux
+  service:
+    name: consul
+    state: restarted
+  listen: 'restart consul'
+
+- name: restart vault
+  service: 
+    name: vault 
+    state: restarted
+  listen: 'restart vault'

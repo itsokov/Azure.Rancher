@@ -1,5 +1,5 @@
 module "generate-cert" {
-  source                  = "./modules/generate-cert"
+  source                  = "../generate-cert"
   organization_name       = var.organization_name
   ca_common_name          = var.ca_common_name
   common_name             = var.common_name
